@@ -7,8 +7,12 @@ dotenv.config();
 const uri = process.env.MONGODB_URL
 
 export const initializeConnection =  () => {
-    mongoose.connect(uri).then(() => {
-        console.log('Connected to MongoDB');
+    mongoose.connect(uri, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        ssl: true,
+        sslValidate: true,
+        serverSelectionTimeoutMS: 60000,
     }).catch((err) => {
         console.error('Error connecting to MongoDB:', err);
     });
