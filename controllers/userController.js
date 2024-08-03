@@ -1,5 +1,6 @@
 import User from '../models/userModel.js';
 import jwt from 'jsonwebtoken';
+import mongoose from "mongoose";
 
 const generateToken = (id) => {
     return jwt.sign({id}, process.env.JWT_SECRET, {
@@ -68,31 +69,30 @@ export const getBookmark = async (req,res) =>{
 }
 
 export const addBookmark = async (req, res) => {
-    const {id,bookmark} = req.params;
+    const { id, bookmark } = req.params;
     try {
         const user = await User.findById(id);
 
         if (user) {
-            if(user.bookmarks.includes(bookmark)){
-                user.bookmarks = user.bookmarks.filter((b) => b === bookmark);
+            const bookmarkId = new mongoose.Types.ObjectId(bookmark);
+            if (user.bookmarks.some((b) => b.equals(bookmarkId))) {
+                user.bookmarks = user.bookmarks.filter((b) => !b.equals(bookmarkId));
                 await user.save();
-                return res.status(201).json({message: 'Bookmark removed successfully'});
+                return res.status(201).json({ message: 'Bookmark removed successfully' });
             }
 
-            user.bookmarks.push(bookmark);
+            user.bookmarks.push(bookmarkId);
             await user.save();
-            return res.json({message: 'Bookmark added successfully'});
+            return res.json({ message: 'Bookmark added successfully' });
         }
 
-        res.status(404).json({message: 'User not found'});
+        res.status(404).json({ message: 'User not found' });
 
     } catch (err) {
         console.error(err);
-        res.status(500).json({message: 'Server error'});
+        res.status(500).json({ message: 'Server error' });
     }
-
-}
-
+};
 export const getUserProfile = async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
